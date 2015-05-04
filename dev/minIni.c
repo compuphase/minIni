@@ -234,7 +234,7 @@ static int getkeystring(INI_FILETYPE *fp, const TCHAR *Section, const TCHAR *Key
   assert(fp != NULL);
   /* Move through file 1 line at a time until a section is matched or EOF. If
    * parameter Section is NULL, only look at keys above the first section. If
-   * idxSection is postive, copy the relevant section name.
+   * idxSection is positive, copy the relevant section name.
    */
   len = (Section != NULL) ? (int)_tcslen(Section) : 0;
   if (len > 0 || idxSection >= 0) {
@@ -449,7 +449,7 @@ int  ini_getkey(const TCHAR *Section, int idx, TCHAR *Buffer, int BufferSize, co
 /** ini_browse()
  * \param Callback    a pointer to a function that will be called for every
  *                    setting in the INI file.
- * \param UserData    arbitrary data, which the function passes on the the
+ * \param UserData    arbitrary data, which the function passes on the
  *                    \c Callback function
  * \param Filename    the name and full path of the .ini file to read from
  *

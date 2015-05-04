@@ -88,7 +88,7 @@ int main(void)
   printf("3. String writing tests passed\n");
 
   /* section/key enumeration */
-  printf("4. Section/key enumertion, file structure follows\n");
+  printf("4. Section/key enumeration, file structure follows\n");
   for (s = 0; ini_getsection(s, section, sizearray(section), inifile) > 0; s++) {
     printf("    [%s]\n", section);
     for (k = 0; ini_getkey(section, k, str, sizearray(str), inifile) > 0; k++) {

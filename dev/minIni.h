@@ -1,6 +1,6 @@
 /*  minIni - Multi-Platform INI file parser, suitable for embedded systems
  *
- *  Copyright (c) CompuPhase, 2008-2015
+ *  Copyright (c) CompuPhase, 2008-2017
  *
  *  Licensed under the Apache License, Version 2.0 (the "License"); you may not
  *  use this file except in compliance with the License. You may obtain a copy
@@ -56,8 +56,8 @@ int   ini_putf(const mTCHAR *Section, const mTCHAR *Key, INI_REAL Value, const m
 #endif /* INI_READONLY */
 
 #if !defined INI_NOBROWSE
-typedef int (*INI_CALLBACK)(const mTCHAR *Section, const mTCHAR *Key, const mTCHAR *Value, const void *UserData);
-int  ini_browse(INI_CALLBACK Callback, const void *UserData, const mTCHAR *Filename);
+typedef int (*INI_CALLBACK)(const mTCHAR *Section, const mTCHAR *Key, const mTCHAR *Value, void *UserData);
+int  ini_browse(INI_CALLBACK Callback, void *UserData, const mTCHAR *Filename);
 #endif /* INI_NOBROWSE */
 
 #if defined __cplusplus

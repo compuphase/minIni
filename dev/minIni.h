@@ -115,31 +115,36 @@ int  ini_browse(INI_CALLBACK Callback, void *UserData, const mTCHAR *Filename);
 #endif
 
 #if ! defined INI_READONLY
-    bool put(const std::string& Section, const std::string& Key, long Value) const
+    bool put(const std::string& Section, const std::string& Key, long Value)
       { return ini_putl(Section.c_str(), Key.c_str(), Value, iniFilename.c_str()) != 0; }
 
-    bool put(const std::string& Section, const std::string& Key, int Value) const
+    bool put(const std::string& Section, const std::string& Key, int Value)
       { return ini_putl(Section.c_str(), Key.c_str(), (long)Value, iniFilename.c_str()) != 0; }
 
-    bool put(const std::string& Section, const std::string& Key, bool Value) const
+    bool put(const std::string& Section, const std::string& Key, bool Value)
       { return ini_putl(Section.c_str(), Key.c_str(), (long)Value, iniFilename.c_str()) != 0; }
 
-    bool put(const std::string& Section, const std::string& Key, const std::string& Value) const
+    bool put(const std::string& Section, const std::string& Key, const std::string& Value)
       { return ini_puts(Section.c_str(), Key.c_str(), Value.c_str(), iniFilename.c_str()) != 0; }
 
-    bool put(const std::string& Section, const std::string& Key, const char* Value) const
+    bool put(const std::string& Section, const std::string& Key, const char* Value)
       { return ini_puts(Section.c_str(), Key.c_str(), Value, iniFilename.c_str()) != 0; }
 
 #if defined INI_REAL
-    bool put(const std::string& Section, const std::string& Key, INI_REAL Value) const
+    bool put(const std::string& Section, const std::string& Key, INI_REAL Value)
       { return ini_putf(Section.c_str(), Key.c_str(), Value, iniFilename.c_str()) != 0; }
 #endif
 
-    bool del(const std::string& Section, const std::string& Key) const
+    bool del(const std::string& Section, const std::string& Key)
       { return ini_puts(Section.c_str(), Key.c_str(), 0, iniFilename.c_str()) != 0; }
 
-    bool del(const std::string& Section) const
+    bool del(const std::string& Section)
       { return ini_puts(Section.c_str(), 0, 0, iniFilename.c_str()) != 0; }
+#endif
+
+#if !defined INI_NOBROWSE
+    bool browse(INI_CALLBACK Callback, void *UserData) const
+      { return ini_browse(Callback, UserData, iniFilename.c_str()) != 0; }
 #endif
 
   private:

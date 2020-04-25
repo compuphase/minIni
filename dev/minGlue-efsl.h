@@ -1,5 +1,5 @@
 /*  Glue functions for the minIni library, based on the EFS Library, see
- *  http://www.efsl.be/
+ *  https://sourceforge.net/projects/efsl/
  *
  *  By CompuPhase, 2008-2012
  *  This "glue file" is in the public domain. It is distributed without

@@ -1,12 +1,13 @@
 /*  Glue functions for the minIni library, based on the "FAT Filing System"
- *  library by embedded-code.com
+ *  library by embedded-code.com, now IBEX UK.
+ *  https://github.com/ibexuk/C_Memory_SD_Card_FAT_Driver
  *
  *  By CompuPhase, 2008-2012
  *  This "glue file" is in the public domain. It is distributed without
  *  warranties or conditions of any kind, either express or implied.
  *
- *  (The "FAT Filing System" library itself is copyright embedded-code.com, and
- *  licensed at its own terms.)
+ *  (The "FAT Filing System" library itself is copyright IBEX UK, and licensed
+ *  at its own terms.)
  */
 
 #define INI_BUFFERSIZE  256       /* maximum line length, maximum path length */

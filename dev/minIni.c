@@ -460,7 +460,7 @@ int  ini_getkey(const TCHAR *Section, int idx, TCHAR *Buffer, int BufferSize, co
  *                    callback stops the browsing, this function will return 1
  *                    (for success).
  */
-int  ini_browse(INI_CALLBACK Callback, void *UserData, const TCHAR *Filename)
+int ini_browse(INI_CALLBACK Callback, void *UserData, const TCHAR *Filename)
 {
   TCHAR LocalBuffer[INI_BUFFERSIZE];
   int lenSec, lenKey;
@@ -520,7 +520,7 @@ static void ini_tempname(TCHAR *dest, const TCHAR *source, int maxlength)
   TCHAR *p;
 
   ini_strncpy(dest, source, maxlength, QUOTE_NONE);
-  p = _tcsrchr(dest, '\0');
+  p = _tcschr(dest, '\0');
   assert(p != NULL);
   *(p - 1) = '~';
 }
@@ -544,7 +544,7 @@ static void writesection(TCHAR *LocalBuffer, const TCHAR *Section, INI_FILETYPE 
     TCHAR *p;
     LocalBuffer[0] = '[';
     ini_strncpy(LocalBuffer + 1, Section, INI_BUFFERSIZE - 4, QUOTE_NONE);  /* -1 for '[', -1 for ']', -2 for '\r\n' */
-    p = _tcsrchr(LocalBuffer, '\0');
+    p = _tcschr(LocalBuffer, '\0');
     assert(p != NULL);
     *p++ = ']';
     _tcscpy(p, INI_LINETERM); /* copy line terminator (typically "\n") */
@@ -558,11 +558,11 @@ static void writekey(TCHAR *LocalBuffer, const TCHAR *Key, const TCHAR *Value, I
   TCHAR *p;
   enum quote_option option = check_enquote(Value);
   ini_strncpy(LocalBuffer, Key, INI_BUFFERSIZE - 3, QUOTE_NONE);  /* -1 for '=', -2 for '\r\n' */
-  p = _tcsrchr(LocalBuffer, '\0');
+  p = _tcschr(LocalBuffer, '\0');
   assert(p != NULL);
   *p++ = '=';
   ini_strncpy(p, Value, INI_BUFFERSIZE - (p - LocalBuffer) - 2, option); /* -2 for '\r\n' */
-  p = _tcsrchr(LocalBuffer, '\0');
+  p = _tcschr(LocalBuffer, '\0');
   assert(p != NULL);
   _tcscpy(p, INI_LINETERM); /* copy line terminator (typically "\n") */
   if (fp != NULL)

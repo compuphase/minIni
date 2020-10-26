@@ -1,7 +1,6 @@
 # minIni
-minIni is a portable and configurable library for reading and writing ".INI" files. At 830 lines of commented source 
-code
-(version 1.2), minIni truly is a "mini" INI file parser, especially considering its features.
+minIni is a portable and configurable library for reading and writing ".INI" files. At just below 900 lines of commented source 
+code, minIni truly is a "mini" INI file parser, especially considering its features.
 
 The library does not require the file I/O functions from the standard C/C++ library, but instead lets you configure 
 the file I/O interface to use via macros. minIni uses limited stack space and does not use dynamic memory (malloc and 

@@ -3,7 +3,7 @@
  *  These routines are in part based on the article "Multiplatform .INI Files"
  *  by Joseph J. Graf in the March 1994 issue of Dr. Dobb's Journal.
  *
- *  Copyright (c) CompuPhase, 2008-2017
+ *  Copyright (c) CompuPhase, 2008-2020
  *
  *  Licensed under the Apache License, Version 2.0 (the "License"); you may not
  *  use this file except in compliance with the License. You may obtain a copy
@@ -611,8 +611,10 @@ static int close_rename(INI_FILETYPE *rfp, INI_FILETYPE *wfp, const TCHAR *filen
 {
   (void)ini_close(rfp);
   (void)ini_close(wfp);
-  (void)ini_remove(filename);
   (void)ini_tempname(buffer, filename, INI_BUFFERSIZE);
+  #if defined ini_remove || defined INI_REMOVE
+    (void)ini_remove(filename);
+  #endif
   (void)ini_rename(buffer, filename);
   return 1;
 }
@@ -653,7 +655,6 @@ int ini_puts(const TCHAR *Section, const TCHAR *Key, const TCHAR *Value, const T
    * the INI file.
    */
   if (Key != NULL && Value != NULL) {
-    ini_tell(&rfp, &mark);
     match = getkeystring(&rfp, Section, Key, -1, -1, LocalBuffer, sizearray(LocalBuffer), &head);
     if (match) {
       /* if the current setting is identical to the one to write, there is
@@ -666,7 +667,7 @@ int ini_puts(const TCHAR *Section, const TCHAR *Key, const TCHAR *Value, const T
       /* if the new setting has the same length as the current setting, and the
        * glue file permits file read/write access, we can modify in place.
        */
-      #if defined ini_openrewrite
+      #if defined ini_openrewrite || defined INI_OPENREWRITE
         /* we already have the start of the (raw) line, get the end too */
         ini_tell(&rfp, &tail);
         /* create new buffer (without writing it to file) */
@@ -685,20 +686,37 @@ int ini_puts(const TCHAR *Section, const TCHAR *Key, const TCHAR *Value, const T
         } /* if */
       #endif
     } /* if */
-    /* key not found, or different value & length -> proceed (but rewind the
-     * input file first)
-     */
-    (void)ini_seek(&rfp, &mark);
+    /* key not found, or different value & length -> proceed */
+  } else if (Key != NULL && Value == NULL) {
+    /* Conversely, for a request to delete a setting; if that setting isn't
+       present, just return */
+    match = getkeystring(&rfp, Section, Key, -1, -1, LocalBuffer, sizearray(LocalBuffer), NULL);
+    if (!match) {
+      (void)ini_close(&rfp);
+      return 1;
+    } /* if */
+    /* key found -> proceed to delete it */
   } /* if */
 
   /* Get a temporary file name to copy to. Use the existing name, but with
    * the last character set to a '~'.
    */
+  (void)ini_close(&rfp);
   ini_tempname(LocalBuffer, Filename, INI_BUFFERSIZE);
-  if (!ini_openwrite(LocalBuffer, &wfp)) {
-    (void)ini_close(&rfp);
+  if (!ini_openwrite(LocalBuffer, &wfp))
     return 0;
+  /* In the case of (advisory) file locks, ini_openwrite() may have been blocked
+   * on the open, and after the block is lifted, the original file may have been
+   * renamed, which is why the original file was closed and is now reopened */
+  if (!ini_openread(Filename, &rfp)) {
+    /* If the .ini file doesn't exist any more, make a new file */
+    assert(Key != NULL && Value != NULL);
+    writesection(LocalBuffer, Section, &wfp);
+    writekey(LocalBuffer, Key, Value, &wfp);
+    (void)ini_close(&wfp);
+    return 1;
   } /* if */
+
   (void)ini_tell(&rfp, &mark);
   cachelen = 0;
 

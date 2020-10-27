@@ -15,23 +15,23 @@
 #define INI_FILETYPE                    FILE*
 
 static inline int ini_openread(const char *filename, INI_FILETYPE *file) {
-  if ((*file = fopen((filename),"r")) == NULL)
+  if ((*file = fopen((filename), "r")) == NULL)
     return 0;
   return flock(fileno(*file), LOCK_SH) == 0;
 }
 
 static inline int ini_openwrite(const char *filename, INI_FILETYPE *file) {
-  if ((*file = fopen((filename),"r+")) == NULL
-      && (*file = fopen((filename),"w")) == NULL)
+  if ((*file = fopen((filename), "r+")) == NULL
+      && (*file = fopen((filename), "w")) == NULL)
     return 0;
   if (flock(fileno(*file), LOCK_EX) < 0)
     return 0;
-  return ftruncate(fileno(*file), 0);
+  return ftruncate(fileno(*file), 0) == 0;
 }
 
 #define INI_OPENREWRITE
 static inline int ini_openrewrite(const char *filename, INI_FILETYPE *file) {
-  if ((*file = fopen((filename),"r+")) == NULL)
+  if ((*file = fopen((filename), "r+")) == NULL)
     return 0;
   return flock(fileno(*file), LOCK_EX) == 0;
 }

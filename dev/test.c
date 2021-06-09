@@ -96,8 +96,15 @@ int main(void)
     } /* for */
   } /* for */
 
+  /* section/key presence check */
+  assert(ini_hassection("first", inifile));
+  assert(!ini_hassection("fourth", inifile));
+  assert(ini_haskey("first", "val", inifile));
+  assert(!ini_haskey("first", "test", inifile));
+  printf("5. checking presence of sections and keys passed\n");
+
   /* browsing through the file */
-  printf("5. browse through all settings, file field list follows\n");
+  printf("6. browse through all settings, file field list follows\n");
   ini_browse(Callback, NULL, inifile);
 
   /* string deletion */
@@ -110,7 +117,7 @@ int main(void)
   /* ----- */
   n = ini_puts(NULL, "alt", NULL, inifile2);
   assert(n==1);
-  printf("6. String deletion tests passed\n");
+  printf("7. String deletion tests passed\n");
 
   return 0;
 }

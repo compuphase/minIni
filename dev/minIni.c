@@ -3,7 +3,7 @@
  *  These routines are in part based on the article "Multiplatform .INI Files"
  *  by Joseph J. Graf in the March 1994 issue of Dr. Dobb's Journal.
  *
- *  Copyright (c) CompuPhase, 2008-2020
+ *  Copyright (c) CompuPhase, 2008-2021
  *
  *  Licensed under the Apache License, Version 2.0 (the "License"); you may not
  *  use this file except in compliance with the License. You may obtain a copy
@@ -71,7 +71,7 @@
   #pragma warning(disable: 4996)	/* for Microsoft Visual C/C++ */
 #endif
 #if !defined strnicmp && !defined PORTABLE_STRNICMP
-  #if defined __LINUX__ || defined __FreeBSD__ || defined __OpenBSD__ || defined __APPLE__ || defined __GNUC__
+  #if defined __LINUX__ || defined __FreeBSD__ || defined __OpenBSD__ || defined __APPLE__ || defined __NetBSD__ || defined __DragonFly__ || defined __GNUC__
     #define strnicmp  strncasecmp
   #endif
 #endif
@@ -80,7 +80,7 @@
 #endif
 
 #if !defined INI_LINETERM
-  #if defined __LINUX__ || defined __FreeBSD__ || defined __OpenBSD__ || defined __APPLE__
+  #if defined __LINUX__ || defined __FreeBSD__ || defined __OpenBSD__ || defined __APPLE__ || defined __NetBSD__ || defined __DragonFly__
     #define INI_LINETERM    __T("\n")
   #else
     #define INI_LINETERM    __T("\r\n")
@@ -113,7 +113,7 @@ int strnicmp(const TCHAR *s1, const TCHAR *s2, size_t n)
       c2 += ('A' - 'a');
     if (c1 != c2)
       return c1 - c2;
-  } /* while */
+  }
   return 0;
 }
 #endif /* PORTABLE_STRNICMP */
@@ -168,9 +168,9 @@ static TCHAR *ini_strncpy(TCHAR *dest, const TCHAR *source, size_t maxlen, enum 
         if (d >= maxlen - 3)
           break;  /* no space to store the escape character plus the one that follows it */
         dest[d++] = '\\';
-      } /* if */
+      }
       dest[d] = source[s];
-    } /* for */
+    }
     dest[d++] = '"';
     dest[d] = '\0';
     break;
@@ -179,12 +179,12 @@ static TCHAR *ini_strncpy(TCHAR *dest, const TCHAR *source, size_t maxlen, enum 
       if ((source[s] == '"' || source[s] == '\\') && source[s + 1] == '"')
         s++;
       dest[d] = source[s];
-    } /* for */
+    }
     dest[d] = '\0';
     break;
   default:
     assert(0);
-  } /* switch */
+  }
 
   return dest;
 }
@@ -207,8 +207,8 @@ static TCHAR *cleanstring(TCHAR *string, enum quote_option *quotes)
         isstring = !isstring; /* single quote, toggle isstring */
     } else if (*ep == '\\' && *(ep + 1) == '"') {
       ep++;                   /* skip \" (both quotes */
-    } /* if */
-  } /* for */
+    }
+  }
   assert(ep != NULL && (*ep == '\0' || *ep == ';' || *ep == '#'));
   *ep = '\0';                 /* terminate at a comment */
   striptrailing(string);
@@ -218,7 +218,7 @@ static TCHAR *cleanstring(TCHAR *string, enum quote_option *quotes)
     string++;
     *--ep = '\0';
     *quotes = QUOTE_DEQUOTE;  /* this is a string, so remove escaped characters */
-  } /* if */
+  }
   return string;
 }
 
@@ -241,23 +241,30 @@ static int getkeystring(INI_FILETYPE *fp, const TCHAR *Section, const TCHAR *Key
     assert(idxSection >= 0 || Section != NULL);
     idx = -1;
     do {
-      if (!ini_read(LocalBuffer, INI_BUFFERSIZE, fp))
-        return 0;
-      sp = skipleading(LocalBuffer);
-      ep = _tcsrchr(sp, ']');
-    } while (*sp != '[' || ep == NULL ||
-             (((int)(ep-sp-1) != len || Section == NULL || _tcsnicmp(sp+1,Section,len) != 0) && ++idx != idxSection));
+      do {
+        if (!ini_read(LocalBuffer, INI_BUFFERSIZE, fp))
+          return 0;
+        sp = skipleading(LocalBuffer);
+        ep = _tcsrchr(sp, ']');
+      } while (*sp != '[' || ep == NULL);
+      /* When arrived here, a section was found; now optionally skip leading and
+       * trailing whitespace.
+       */
+      assert(sp != NULL && *sp == '[');
+      sp = skipleading(sp + 1);
+      assert(ep != NULL && *ep == ']');
+      ep = skiptrailing(ep, sp);
+    } while ((((int)(ep-sp) != len || Section == NULL || _tcsnicmp(sp, Section, len) != 0) && ++idx != idxSection));
     if (idxSection >= 0) {
       if (idx == idxSection) {
         assert(ep != NULL);
-        assert(*ep == ']');
-        *ep = '\0';
-        ini_strncpy(Buffer, sp + 1, BufferSize, QUOTE_NONE);
+        *ep = '\0'; /* the end of the section name was found earlier */
+        ini_strncpy(Buffer, sp, BufferSize, QUOTE_NONE);
         return 1;
-      } /* if */
+      }
       return 0; /* no more section found */
-    } /* if */
-  } /* if */
+    }
+  }
 
   /* Now that the section has been found, find the entry.
    * Stop searching upon leaving the section's area.
@@ -284,9 +291,9 @@ static int getkeystring(INI_FILETYPE *fp, const TCHAR *Section, const TCHAR *Key
       striptrailing(sp);
       ini_strncpy(Buffer, sp, BufferSize, QUOTE_NONE);
       return 1;
-    } /* if */
+    }
     return 0;   /* no more key found (in this section) */
-  } /* if */
+  }
 
   /* Copy up to BufferSize chars to buffer */
   assert(ep != NULL);
@@ -318,7 +325,7 @@ int ini_gets(const TCHAR *Section, const TCHAR *Key, const TCHAR *DefValue,
   if (ini_openread(Filename, &fp)) {
     ok = getkeystring(&fp, Section, Key, -1, -1, Buffer, BufferSize, NULL);
     (void)ini_close(&fp);
-  } /* if */
+  }
   if (!ok)
     ini_strncpy(Buffer, (DefValue != NULL) ? DefValue : __T(""), BufferSize, QUOTE_NONE);
   return (int)_tcslen(Buffer);
@@ -412,7 +419,7 @@ int  ini_getsection(int idx, TCHAR *Buffer, int BufferSize, const TCHAR *Filenam
   if (ini_openread(Filename, &fp)) {
     ok = getkeystring(&fp, NULL, NULL, idx, -1, Buffer, BufferSize, NULL);
     (void)ini_close(&fp);
-  } /* if */
+  }
   if (!ok)
     *Buffer = '\0';
   return (int)_tcslen(Buffer);
@@ -438,10 +445,49 @@ int  ini_getkey(const TCHAR *Section, int idx, TCHAR *Buffer, int BufferSize, co
   if (ini_openread(Filename, &fp)) {
     ok = getkeystring(&fp, Section, NULL, -1, idx, Buffer, BufferSize, NULL);
     (void)ini_close(&fp);
-  } /* if */
+  }
   if (!ok)
     *Buffer = '\0';
   return (int)_tcslen(Buffer);
+}
+
+/** ini_hassection()
+ * \param Section     the name of the section to search for
+ * \param Filename    the name of the .ini file to read from
+ *
+ * \return            1 if the section is found, 0 if not found
+ */
+int ini_hassection(const mTCHAR *Section, const mTCHAR *Filename)
+{
+  TCHAR LocalBuffer[32];  /* dummy buffer */
+  INI_FILETYPE fp;
+  int ok = 0;
+
+  if (ini_openread(Filename, &fp)) {
+    ok = getkeystring(&fp, Section, NULL, -1, 0, LocalBuffer, sizearray(LocalBuffer), NULL);
+    (void)ini_close(&fp);
+  }
+  return ok;
+}
+
+/** ini_haskey()
+ * \param Section     the name of the section to search for
+ * \param Key         the name of the entry to find the value of
+ * \param Filename    the name of the .ini file to read from
+ *
+ * \return            1 if the key is found, 0 if not found
+ */
+int ini_haskey(const mTCHAR *Section, const mTCHAR *Key, const mTCHAR *Filename)
+{
+  TCHAR LocalBuffer[32];  /* dummy buffer */
+  INI_FILETYPE fp;
+  int ok = 0;
+
+  if (ini_openread(Filename, &fp)) {
+    ok = getkeystring(&fp, Section, Key, -1, -1, LocalBuffer, sizearray(LocalBuffer), NULL);
+    (void)ini_close(&fp);
+  }
+  return ok;
 }
 
 
@@ -485,11 +531,13 @@ int ini_browse(INI_CALLBACK Callback, void *UserData, const TCHAR *Filename)
     /* see whether we reached a new section */
     ep = _tcsrchr(sp, ']');
     if (*sp == '[' && ep != NULL) {
+      sp = skipleading(sp + 1);
+      ep = skiptrailing(ep, sp);
       *ep = '\0';
-      ini_strncpy(LocalBuffer, sp + 1, INI_BUFFERSIZE, QUOTE_NONE);
+      ini_strncpy(LocalBuffer, sp, INI_BUFFERSIZE, QUOTE_NONE);
       lenSec = (int)_tcslen(LocalBuffer) + 1;
       continue;
-    } /* if */
+    }
     /* not a new section, test for a key/value pair */
     ep = _tcschr(sp, '=');    /* test for the equal sign or colon */
     if (ep == NULL)
@@ -507,7 +555,7 @@ int ini_browse(INI_CALLBACK Callback, void *UserData, const TCHAR *Filename)
     /* call the callback */
     if (!Callback(LocalBuffer, LocalBuffer + lenSec, LocalBuffer + lenSec + lenKey, UserData))
       break;
-  } /* for */
+  }
 
   (void)ini_close(&fp);
   return 1;
@@ -550,7 +598,7 @@ static void writesection(TCHAR *LocalBuffer, const TCHAR *Section, INI_FILETYPE 
     _tcscpy(p, INI_LINETERM); /* copy line terminator (typically "\n") */
     if (fp != NULL)
       (void)ini_write(LocalBuffer, fp);
-  } /* if */
+  }
 }
 
 static void writekey(TCHAR *LocalBuffer, const TCHAR *Key, const TCHAR *Value, INI_FILETYPE *fp)
@@ -582,18 +630,19 @@ static int cache_flush(TCHAR *buffer, int *size,
                       INI_FILETYPE *rfp, INI_FILETYPE *wfp, INI_FILEPOS *mark)
 {
   int terminator_len = (int)_tcslen(INI_LINETERM);
-  int pos = 0;
+  int pos = 0, pos_prev = -1;
 
   (void)ini_seek(rfp, mark);
   assert(buffer != NULL);
   buffer[0] = '\0';
   assert(size != NULL);
   assert(*size <= INI_BUFFERSIZE);
-  while (pos < *size) {
+  while (pos < *size && pos != pos_prev) {
+    pos_prev = pos;     /* to guard against zero bytes in the INI file */
     (void)ini_read(buffer + pos, INI_BUFFERSIZE - pos, rfp);
     while (pos < *size && buffer[pos] != '\0')
       pos++;            /* cannot use _tcslen() because buffer may not be zero-terminated */
-  } /* while */
+  }
   if (buffer[0] != '\0') {
     assert(pos > 0 && pos <= INI_BUFFERSIZE);
     if (pos == INI_BUFFERSIZE)
@@ -646,9 +695,9 @@ int ini_puts(const TCHAR *Section, const TCHAR *Key, const TCHAR *Value, const T
       writesection(LocalBuffer, Section, &wfp);
       writekey(LocalBuffer, Key, Value, &wfp);
       (void)ini_close(&wfp);
-    } /* if */
+    }
     return 1;
-  } /* if */
+  }
 
   /* If parameters Key and Value are valid (so this is not an "erase" request)
    * and the setting already exists, there are two short-cuts to avoid rewriting
@@ -663,7 +712,7 @@ int ini_puts(const TCHAR *Section, const TCHAR *Key, const TCHAR *Value, const T
       if (_tcscmp(LocalBuffer,Value) == 0) {
         (void)ini_close(&rfp);
         return 1;
-      } /* if */
+      }
       /* if the new setting has the same length as the current setting, and the
        * glue file permits file read/write access, we can modify in place.
        */
@@ -683,9 +732,9 @@ int ini_puts(const TCHAR *Section, const TCHAR *Key, const TCHAR *Value, const T
           (void)ini_write(LocalBuffer, &wfp);
           (void)ini_close(&wfp);
           return 1;
-        } /* if */
+        }
       #endif
-    } /* if */
+    }
     /* key not found, or different value & length -> proceed */
   } else if (Key != NULL && Value == NULL) {
     /* Conversely, for a request to delete a setting; if that setting isn't
@@ -694,9 +743,9 @@ int ini_puts(const TCHAR *Section, const TCHAR *Key, const TCHAR *Value, const T
     if (!match) {
       (void)ini_close(&rfp);
       return 1;
-    } /* if */
+    }
     /* key found -> proceed to delete it */
-  } /* if */
+  }
 
   /* Get a temporary file name to copy to. Use the existing name, but with
    * the last character set to a '~'.
@@ -715,7 +764,7 @@ int ini_puts(const TCHAR *Section, const TCHAR *Key, const TCHAR *Value, const T
     writekey(LocalBuffer, Key, Value, &wfp);
     (void)ini_close(&wfp);
     return 1;
-  } /* if */
+  }
 
   (void)ini_tell(&rfp, &mark);
   cachelen = 0;
@@ -734,24 +783,33 @@ int ini_puts(const TCHAR *Section, const TCHAR *Key, const TCHAR *Value, const T
             (void)ini_write(INI_LINETERM, &wfp);  /* force a new line behind the last line of the INI file */
           writesection(LocalBuffer, Section, &wfp);
           writekey(LocalBuffer, Key, Value, &wfp);
-        } /* if */
+        }
         return close_rename(&rfp, &wfp, Filename, LocalBuffer);  /* clean up and rename */
-      } /* if */
+      }
+      /* Check whether this line is a section */
+      sp = skipleading(LocalBuffer);
+      ep = _tcsrchr(sp, ']');
+      match = (*sp == '[' && ep != NULL);
+      if (match) {
+        /* A section was found, skip leading and trailing whitespace */
+        assert(sp != NULL && *sp == '[');
+        sp = skipleading(sp + 1);
+        assert(ep != NULL && *ep == ']');
+        ep = skiptrailing(ep, sp);
+        match = ((int)(ep-sp) == len && _tcsnicmp(sp, Section, len) == 0);
+      }
       /* Copy the line from source to dest, but not if this is the section that
        * we are looking for and this section must be removed
        */
-      sp = skipleading(LocalBuffer);
-      ep = _tcsrchr(sp, ']');
-      match = (*sp == '[' && ep != NULL && (int)(ep-sp-1) == len && _tcsnicmp(sp + 1,Section,len) == 0);
       if (!match || Key != NULL) {
         if (!cache_accum(LocalBuffer, &cachelen, INI_BUFFERSIZE)) {
           cache_flush(LocalBuffer, &cachelen, &rfp, &wfp, &mark);
           (void)ini_read(LocalBuffer, INI_BUFFERSIZE, &rfp);
           cache_accum(LocalBuffer, &cachelen, INI_BUFFERSIZE);
-        } /* if */
-      } /* if */
+        }
+      }
     } while (!match);
-  } /* if */
+  }
   cache_flush(LocalBuffer, &cachelen, &rfp, &wfp, &mark);
   /* when deleting a section, the section head that was just found has not been
    * copied to the output file, but because this line was not "accumulated" in
@@ -761,7 +819,7 @@ int ini_puts(const TCHAR *Section, const TCHAR *Key, const TCHAR *Value, const T
   if (Key == NULL) {
     (void)ini_read(LocalBuffer, INI_BUFFERSIZE, &rfp);
     (void)ini_tell(&rfp, &mark);
-  } /* if */
+  }
 
   /* Now that the section has been found, find the entry. Stop searching
    * upon leaving the section's area. Copy the file as it is read
@@ -776,9 +834,9 @@ int ini_puts(const TCHAR *Section, const TCHAR *Key, const TCHAR *Value, const T
         if (!flag)
           (void)ini_write(INI_LINETERM, &wfp);  /* force a new line behind the last line of the INI file */
         writekey(LocalBuffer, Key, Value, &wfp);
-      } /* if */
+      }
       return close_rename(&rfp, &wfp, Filename, LocalBuffer);  /* clean up and rename */
-    } /* if */
+    }
     sp = skipleading(LocalBuffer);
     ep = _tcschr(sp, '='); /* Parse out the equal sign */
     if (ep == NULL)
@@ -794,9 +852,9 @@ int ini_puts(const TCHAR *Section, const TCHAR *Key, const TCHAR *Value, const T
         cache_flush(LocalBuffer, &cachelen, &rfp, &wfp, &mark);
         (void)ini_read(LocalBuffer, INI_BUFFERSIZE, &rfp);
         cache_accum(LocalBuffer, &cachelen, INI_BUFFERSIZE);
-      } /* if */
-    } /* if */
-  } /* for */
+      }
+    }
+  }
   /* the key was found, or we just dropped on the next section (meaning that it
    * wasn't found); in both cases we need to write the key, but in the latter
    * case, we also need to write the line starting the new section after writing
@@ -817,15 +875,15 @@ int ini_puts(const TCHAR *Section, const TCHAR *Key, const TCHAR *Value, const T
   } else {
     /* forget the old key line */
     (void)ini_tell(&rfp, &mark);
-  } /* if */
+  }
   /* Copy the rest of the INI file */
   while (ini_read(LocalBuffer, INI_BUFFERSIZE, &rfp)) {
     if (!cache_accum(LocalBuffer, &cachelen, INI_BUFFERSIZE)) {
       cache_flush(LocalBuffer, &cachelen, &rfp, &wfp, &mark);
       (void)ini_read(LocalBuffer, INI_BUFFERSIZE, &rfp);
       cache_accum(LocalBuffer, &cachelen, INI_BUFFERSIZE);
-    } /* if */
-  } /* while */
+    }
+  }
   cache_flush(LocalBuffer, &cachelen, &rfp, &wfp, &mark);
   return close_rename(&rfp, &wfp, Filename, LocalBuffer);  /* clean up and rename */
 }
@@ -840,7 +898,7 @@ static void strreverse(TCHAR *str)
     TCHAR t = str[i];
     str[i] = str[j];
     str[j] = t;
-  } /* for */
+  }
 }
 
 static void long2str(long value, TCHAR *str)

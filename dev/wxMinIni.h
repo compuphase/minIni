@@ -61,6 +61,12 @@ public:
     return result;
     }
 
+  bool hassection(const wxString& Section) const
+    { return ini_hassection(Section.utf8_str(), iniFilename.utf8_str()) != 0; }
+
+  bool haskey(const wxString& Section, const wxString& Key) const
+    { return ini_haskey(Section.utf8_str(), Key.utf8_str(), iniFilename.utf8_str()) != 0; }
+
 #if defined INI_REAL
   INI_REAL getf(const wxString& Section, wxString& Key, INI_REAL DefValue=0) const
     { return ini_getf(Section.utf8_str(), Key.utf8_str(), DefValue, iniFilename.utf8_str()); }

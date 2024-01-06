@@ -1,6 +1,6 @@
 /*  minIni - Multi-Platform INI file parser, wxWidgets interface
  *
- *  Copyright (c) CompuPhase, 2008-2012
+ *  Copyright (c) CompuPhase, 2008-2024
  *
  *  Licensed under the Apache License, Version 2.0 (the "License"); you may not
  *  use this file except in compliance with the License. You may obtain a copy
@@ -73,13 +73,13 @@ public:
 #endif
 
 #if ! defined INI_READONLY
+  bool put(const wxString& Section, const wxString& Key, bool Value) const
+    { return ini_putbool(Section.utf8_str(), Key.utf8_str(), (int)Value, iniFilename.utf8_str()) != 0; }
+
   bool put(const wxString& Section, const wxString& Key, long Value) const
     { return ini_putl(Section.utf8_str(), Key.utf8_str(), Value, iniFilename.utf8_str()) != 0; }
 
   bool put(const wxString& Section, const wxString& Key, int Value) const
-    { return ini_putl(Section.utf8_str(), Key.utf8_str(), (long)Value, iniFilename.utf8_str()) != 0; }
-
-  bool put(const wxString& Section, const wxString& Key, bool Value) const
     { return ini_putl(Section.utf8_str(), Key.utf8_str(), (long)Value, iniFilename.utf8_str()) != 0; }
 
   bool put(const wxString& Section, const wxString& Key, const wxString& Value) const

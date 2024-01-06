@@ -51,7 +51,7 @@ INI_REAL ini_getf(const mTCHAR *Section, const mTCHAR *Key, INI_REAL DefValue, c
 #endif
 
 #if !defined INI_READONLY
-int  ini_putbool(const TCHAR *Section, const TCHAR *Key, int Value, const TCHAR *Filename);
+int  ini_putbool(const mTCHAR *Section, const mTCHAR *Key, int Value, const mTCHAR *Filename);
 int  ini_putl(const mTCHAR *Section, const mTCHAR *Key, long Value, const mTCHAR *Filename);
 int  ini_puts(const mTCHAR *Section, const mTCHAR *Key, const mTCHAR *Value, const mTCHAR *Filename);
 #if defined INI_REAL

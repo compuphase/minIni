@@ -86,7 +86,7 @@ Comments in the INI must start with a semicolon (";") or a hash character ("#"),
 A comment can be a line of its own, or it may follow a key/value pair (the "#" character and trailing comments
 are extensions of minIni).
 
-For more details on the format, please see http://en.wikipedia.org/wiki/INI_file.
+For more details on the format, please see https://en.wikipedia.org/wiki/INI_file.
 
 
 # Adapting minIni to a file system
@@ -98,8 +98,8 @@ to those provided by the operating system. The glue file must be called "minGlue
 To get you started, the minIni distribution comes with the following example glue files:
 
  * a glue file that maps to the standard C/C++ library (specifically the file I/O functions from the "stdio" package),
- * a glue file for Microchip's "Memory Disk Drive File System Library" (see http://www.microchip.com/),
- * a glue file for the FAT library provided with the CCS PIC compiler (see http://www.ccsinfo.com/)
+ * a glue file for Microchip's "Memory Disk Drive File System Library" (see https://www.microchip.com/),
+ * a glue file for the FAT library provided with the CCS PIC compiler (see https://www.ccsinfo.com/)
  * a glue file for the EFS Library (EFSL, http://www.efsl.be/),
  * and a glue file for the FatFs and Petit-FatFs libraries (http://elm-chan.org/fsw/ff/00index_e.html).
 
